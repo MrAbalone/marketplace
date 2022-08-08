@@ -1,7 +1,7 @@
 import React from "react";
 import { useState, useEffect, useRef } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Spinner from "../components/Spinner";
 import { toast } from "react-toastify";
 import {
@@ -12,10 +12,19 @@ import {
 } from "firebase/storage";
 import { db } from "../firebase.config";
 import { v4 as uuidv4 } from "uuid";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import {
+  doc,
+  updateDoc,
+  getDoc,
+  addDoc,
+  collection,
+  serverTimestamp,
+} from "firebase/firestore";
+import userEvent from "@testing-library/user-event";
 
 function CreateListing() {
   const [loading, setLoading] = useState(false);
+  const [listing, setListing] = useState(false);
   const [geolocationEnabled, setGeolocationEnabled] = useState(true);
   const [formData, setFormData] = useState({
     type: "rent",
@@ -127,7 +136,7 @@ function CreateListing() {
       const response = await fetch(
         `http://api.positionstack.com/v1/forward?access_key=${APIKEY}&query=${address}`
       );
-    //   console.log(response.url);
+      //   console.log(response.url);
       const data = await response.json();
 
       if (data.data.length === 0) {
@@ -215,6 +224,7 @@ function CreateListing() {
     !formDataCopy.offer && delete formDataCopy.discountedPrice;
 
     const docRef = await addDoc(collection(db, "listings"), formDataCopy);
+    setLoading(false);
     toast.success("Listing saved");
     navigate(`/category/${formDataCopy.type}/${docRef.id}`);
     console.log(imgUrls);
